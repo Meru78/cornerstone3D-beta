@@ -13,7 +13,7 @@ import {
   setPetColorMapTransferFunctionForVolumeActor,
   setPetTransferFunctionForVolumeActor,
   setCtTransferFunctionForVolumeActor,
-  addDropdownToToolbar,
+  addButtonToToolbar,
 } from '../../../../utils/demo/helpers';
 import * as cornerstoneTools from '@cornerstonejs/tools';
 
@@ -70,32 +70,40 @@ setTitleAndDescription(
 const optionsValues = [WindowLevelTool.toolName, CrosshairsTool.toolName];
 
 // ============================= //
-addDropdownToToolbar({
-  options: { values: optionsValues, defaultValue: WindowLevelTool.toolName },
-  onSelectedValueChange: (toolNameAsStringOrNumber) => {
-    const toolName = String(toolNameAsStringOrNumber);
-
-    [ctToolGroupId, ptToolGroupId, fusionToolGroupId].forEach((toolGroupId) => {
-      const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-
-      // Set the other tools disabled so we don't get conflicts.
-      // Note we only strictly need to change the one which is currently active.
-
-      if (toolName === WindowLevelTool.toolName) {
-        // Set crosshairs passive so they are still interactable
-        toolGroup.setToolPassive(CrosshairsTool.toolName);
-        toolGroup.setToolActive(WindowLevelTool.toolName, {
-          bindings: [{ mouseButton: MouseBindings.Primary }],
-        });
-      } else {
-        toolGroup.setToolDisabled(WindowLevelTool.toolName);
-        toolGroup.setToolActive(CrosshairsTool.toolName, {
-          bindings: [{ mouseButton: MouseBindings.Primary }],
-        });
-      }
-    });
+addButtonToToolbar({
+  title: 'Crosshairs',
+  onClick() {
+    onButtonClickHandler(CrosshairsTool.toolName, WindowLevelTool.toolName);
   },
 });
+
+addButtonToToolbar({
+  title: 'WindowLevel',
+  onClick() {
+    onButtonClickHandler(WindowLevelTool.toolName, CrosshairsTool.toolName);
+  },
+});
+
+const onButtonClickHandler = (activeToolName, disabledToolName) => {
+  [ctToolGroupId, ptToolGroupId, fusionToolGroupId].forEach((toolGroupId) => {
+    const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+    toolGroup.setToolPassive(disabledToolName);
+    toolGroup.setToolActive(activeToolName, {
+      bindings: [{ mouseButton: MouseBindings.Primary }],
+    });
+
+    const CrosshairsButton = document.getElementById('Crosshairs');
+    const WindowLevelButton = document.getElementById('WindowLevel');
+
+    if (activeToolName === 'WindowLevel') {
+      CrosshairsButton.className = '';
+      WindowLevelButton.className = 'active';
+    } else {
+      CrosshairsButton.className = 'active';
+      WindowLevelButton.className = '';
+    }
+  });
+};
 
 const resizeObserver = new ResizeObserver(() => {
   console.log('Size changed');
